@@ -38,7 +38,7 @@ fn build(args: &[String]) {
     let output = &args[1];
 
     println!("build command with {} {}", input, output);
-    filesystem::parse_anime_dir(input);
+    filesystem::parse_all(input);
 
 }
 
