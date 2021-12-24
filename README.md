@@ -12,3 +12,7 @@ $ rustc ramen.rs
 $ ./ramen
 ```
 
+## TODO
+
+- [ ] rewrite builder pattern (a lot of duplicated code)
+- [ ] support decimal episode numbers (rust doesn't have Ord on f32?)
