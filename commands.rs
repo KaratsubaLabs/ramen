@@ -3,6 +3,8 @@
 
 use super::parse;
 use super::gen;
+use super::config;
+use super::common;
 
 static HELP_MSG: &str = "\
 USAGE:
@@ -41,6 +43,8 @@ fn build(args: &[String]) {
     let output = &args[1];
 
     println!("build command with {} {}", input, output);
+    
+    config::load_config(common::DEFAULT_CONFIG_DIR);
     parse::parse_all(input);
 
 }
