@@ -1,13 +1,14 @@
 
+// parses file system
+
 use std::fs;
 use std::fs::File;
 use std::path::{PathBuf, Path};
 use std::io;
 use std::io::prelude::*;
 use std::collections::BTreeMap;
-use std::error::Error;
 
-type BoxResult<T> = Result<T,Box<Error>>;
+use super::common::{BoxResult};
 
 #[derive(Debug)]
 pub enum AnimeType {
@@ -108,17 +109,21 @@ impl AnimeMetaBuiilder {
     }
 }
 
-pub fn parse_all(root_dir: &str) -> BoxResult<()> {
+pub fn parse_all(root_dir: &str) -> BoxResult<Vec<AnimeData>> {
     
     let path = PathBuf::from(root_dir);
+    let mut anime_data_index = Vec::new();
     for f in fs::read_dir(path)? {
         let f = f?;
         println!("parsing {:?}", f.file_name());
-        if f.path().is_dir() {
-            parse_anime(&f.path());
-        }
+        if !f.path().is_dir() { continue; }
+
+        let anime_data = parse_anime(&f.path());
+        if anime_data.is_err() { continue; }
+
+        anime_data_index.push(anime_data.unwrap());
     }
-    Ok(())
+    Ok(anime_data_index)
 }
 
 fn parse_anime(anime_dir: &Path) -> BoxResult<AnimeData> {
@@ -152,7 +157,7 @@ fn parse_anime(anime_dir: &Path) -> BoxResult<AnimeData> {
         // check if subtitle file has a corresponding episode
         if !episodes.contains_key(&subtitle.0) { continue; }
 
-        let mut ep_data = episodes.get_mut(&subtitle.0).unwrap();
+        let ep_data = episodes.get_mut(&subtitle.0).unwrap();
         ep_data.subtitles.push(subtitle.1);
     }
 
@@ -213,7 +218,6 @@ fn parse_episode_file(ep_file: &Path) -> Option<(u8,EpisodeData)> {
     // TODO check if file is video file
 
     // TODO get duration of video
-
 
     Some((episode_number, episode_data))
 }

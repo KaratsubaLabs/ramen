@@ -1,5 +1,8 @@
 
-use super::filesystem;
+// entry point to cli commands
+
+use super::parse;
+use super::gen;
 
 static HELP_MSG: &str = "\
 USAGE:
@@ -38,7 +41,7 @@ fn build(args: &[String]) {
     let output = &args[1];
 
     println!("build command with {} {}", input, output);
-    filesystem::parse_all(input);
+    parse::parse_all(input);
 
 }
 

@@ -1,5 +1,9 @@
+
 mod commands;
-mod filesystem;
+mod common;
+mod config;
+mod gen;
+mod parse;
 
 fn main() {
 
