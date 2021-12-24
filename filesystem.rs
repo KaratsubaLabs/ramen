@@ -5,6 +5,9 @@ use std::path::{PathBuf, Path};
 use std::io;
 use std::io::prelude::*;
 use std::collections::BTreeMap;
+use std::error::Error;
+
+type BoxResult<T> = Result<T,Box<Error>>;
 
 #[derive(Debug)]
 pub enum AnimeType {
@@ -105,7 +108,7 @@ impl AnimeMetaBuiilder {
     }
 }
 
-pub fn parse_all(root_dir: &str) -> io::Result<()> {
+pub fn parse_all(root_dir: &str) -> BoxResult<()> {
     
     let path = PathBuf::from(root_dir);
     for f in fs::read_dir(path)? {
@@ -118,7 +121,7 @@ pub fn parse_all(root_dir: &str) -> io::Result<()> {
     Ok(())
 }
 
-fn parse_anime(anime_dir: &Path) -> io::Result<AnimeData> {
+fn parse_anime(anime_dir: &Path) -> BoxResult<AnimeData> {
 
     // grab metadata
     let path = anime_dir.join("data");
@@ -128,41 +131,29 @@ fn parse_anime(anime_dir: &Path) -> io::Result<AnimeData> {
     let path = anime_dir.join("files");
     let mut episodes: BTreeMap<u8, EpisodeData> = BTreeMap::new();
     for f in fs::read_dir(path)? {
-        let f = f?;
+        let f = f?; // probably don't wanna terminate function when this fails
 
-        if !f.path().is_file() {
-            continue;
+        let episode = parse_episode_file(&f.path());
+        if episode.is_some() {
+            let episode = episode.unwrap();
+            episodes.insert(episode.0, episode.1);
         }
-
-        // grab file name and extension
-        let raw_filename = f.file_name().into_string();
-        if raw_filename.is_err() {
-            continue;
-        }
-        let raw_filename = raw_filename.unwrap();
-        let split = raw_filename.rsplit_once(".");
-        if split.is_none() {
-            continue;
-        }
-        let split = split.unwrap();
-
-        // TODO check if file is video file
-
-        // TODO get duration of video
-
-        let episode_number = split.0.parse::<u8>();
-        if episode_number.is_err() {
-            continue;
-        }
-        let episode_number = episode_number.unwrap();
-
-        let episode_data = EpisodeData::new();
-        episodes.insert(episode_number, episode_data);
     }
 
     // grab list of all subtitles
     let path = anime_dir.join("subtitles");
     for f in fs::read_dir(path)? {
+        let f = f?;
+
+        let subtitle = parse_subtitle_file(&f.path());
+        if subtitle.is_none() { continue; }
+        let subtitle = subtitle.unwrap();
+
+        // check if subtitle file has a corresponding episode
+        if !episodes.contains_key(&subtitle.0) { continue; }
+
+        let mut ep_data = episodes.get_mut(&subtitle.0).unwrap();
+        ep_data.subtitles.push(subtitle.1);
     }
 
     let anime_data = AnimeData {
@@ -170,10 +161,12 @@ fn parse_anime(anime_dir: &Path) -> io::Result<AnimeData> {
         episodes: episodes
     };
 
+    println!("{:?}", anime_data);
+
     Ok(anime_data)
 }
 
-fn parse_meta(meta_path: &Path) -> io::Result<AnimeMeta> {
+fn parse_meta(meta_path: &Path) -> BoxResult<AnimeMeta> {
 
     let file = File::open(meta_path)?;
     let reader = io::BufReader::new(file);
@@ -189,10 +182,7 @@ fn parse_meta(meta_path: &Path) -> io::Result<AnimeMeta> {
             continue;
         }
         let mut split = split.unwrap();
-        split.0 = split.0.trim();
-        split.1 = split.1.trim();
-
-        println!("{:?}", split);
+        split = (split.0.trim(), split.1.trim());
 
         builder = match split.0 {
             "title" => builder.title(split.1.to_string()),
@@ -207,5 +197,43 @@ fn parse_meta(meta_path: &Path) -> io::Result<AnimeMeta> {
     println!("{:?}", anime_data);
 
     Ok(anime_data)
+}
+
+fn parse_episode_file(ep_file: &Path) -> Option<(u8,EpisodeData)> {
+
+    if !ep_file.is_file() { return None; }
+
+    // grab file name and extension
+    let filename = ep_file.file_name()?.to_str()?;
+    let split = filename.rsplit_once(".")?;
+    let episode_number = split.0.parse::<u8>().ok()?;
+
+    let mut episode_data = EpisodeData::new();
+
+    // TODO check if file is video file
+
+    // TODO get duration of video
+
+
+    Some((episode_number, episode_data))
+}
+
+// subtitle file name in form [episode_number]_[language].[extension]
+fn parse_subtitle_file(sub_file: &Path) -> Option<(u8,SubtitleData)> {
+
+    if !sub_file.is_file() { return None; }
+
+    // grab file name and extension
+    let filename = sub_file.file_name()?.to_str()?;
+    let split = filename.rsplit_once(".")?;
+    let split = split.0.split_once("_")?;
+
+    let episode_number = split.0.parse::<u8>().ok()?;
+    let language = split.1;
+
+    let subtitle_data = SubtitleData{
+        language: language.to_string()
+    };
+    Some((episode_number,subtitle_data))
 }
 
