@@ -44,7 +44,7 @@ fn build(args: &[String]) {
 
     println!("build command with {} {}", input, output);
     
-    config::load_config(common::DEFAULT_CONFIG_DIR);
+    let user_config = config::load_config(common::DEFAULT_CONFIG_DIR);
     parse::parse_all(input);
 
 }

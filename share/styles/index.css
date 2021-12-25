@@ -1,0 +1,66 @@
+
+:root {
+    --text-light: slategrey;
+    --text-dark: #2c3e50;
+    --highlight-light: #f92672;
+
+    color: var(--text-dark);
+    background-color: var(--bg-dark);
+    font-family: 'Courier New', monospace;
+}
+
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+nav {
+    background-color: var(--bg-light);
+    padding: 1rem;
+    text-align: right;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-light);
+}
+
+a {
+    color: var(--text-light);
+    transition: color 0.2s;
+    text-decoration: none;
+}
+a:hover {
+    color: var(--text-dark);
+}
+
+strong {
+    color: var(--text-light);
+}
+
+.navbar {
+    padding: 0.5rem;
+    background-color: var(--highlight-light);
+}
+
+.app-logo-text {
+    color: var(--text-dark);
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.karat-text {
+    text-decoration: none;
+}
+
+.main-container {
+    margin-left: 30%;
+    margin-right: 30%;
+    margin-top: 3rem;
+}
+
+.title-container {
+    text-align: center;
+}
+
