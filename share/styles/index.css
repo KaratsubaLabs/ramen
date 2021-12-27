@@ -1,5 +1,6 @@
 
 :root {
+    --text-nav-light: #F9F9F9;
     --text-light: slategrey;
     --text-dark: #2c3e50;
     --highlight-light: #f92672;
@@ -13,12 +14,6 @@ body {
     height: 100%;
     margin: 0;
     padding: 0;
-}
-
-nav {
-    background-color: var(--bg-light);
-    padding: 1rem;
-    text-align: right;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -43,6 +38,10 @@ strong {
     background-color: var(--highlight-light);
 }
 
+.navbar a {
+    color: var(--text-dark);
+}
+
 .app-logo-text {
     color: var(--text-dark);
     text-decoration: none;
@@ -54,7 +53,7 @@ strong {
     text-decoration: none;
 }
 
-.main-container {
+.index-main-container {
     margin-left: 30%;
     margin-right: 30%;
     margin-top: 3rem;
@@ -62,5 +61,29 @@ strong {
 
 .title-container {
     text-align: center;
+}
+
+.animepage-main-container {
+    margin-left: 25%;
+    margin-right: 25%;
+    margin-top: 3rem;
+}
+
+hgroup h1 {
+    margin: 0;
+}
+hgroup p {
+    margin: 0;
+}
+
+.animepage-container {
+    display: flex;
+    margin-bottom: 2rem;
+}
+.animepage-cover-container {
+    margin-right: 2rem;
+    margin-top: 1rem;
+}
+.animepage-info-container {
 }
 

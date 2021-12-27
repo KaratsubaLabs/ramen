@@ -43,7 +43,7 @@ pub struct AnimeMeta {
     pub synopsis: String,
     pub anime_type: AnimeType,
     // cover image
-    // release data
+    // release date
     // tags
 }
 
