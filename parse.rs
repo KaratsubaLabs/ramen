@@ -109,9 +109,8 @@ impl AnimeMetaBuiilder {
     }
 }
 
-pub fn parse_all(root_dir: &str) -> BoxResult<Vec<AnimeData>> {
+pub fn parse_all(path: &Path) -> BoxResult<Vec<AnimeData>> {
     
-    let path = PathBuf::from(root_dir);
     let mut anime_data_index = Vec::new();
     for f in fs::read_dir(path)? {
         let f = f?;

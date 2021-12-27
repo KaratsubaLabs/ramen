@@ -35,17 +35,31 @@ fn help_and_exit() {
     std::process::exit(1);
 }
 
+fn error_and_exit(msg: &str) {
+    println!("ERROR: {}", msg);
+    std::process::exit(1);
+}
+
 fn build(args: &[String]) {
-    if args.len() < 2 {
+    if args.len() < 1 {
         help_and_exit()
     }
-    let input = &args[0];
-    let output = &args[1];
+    let config_dir = &args[0];
 
-    println!("build command with {} {}", input, output);
-    
-    let user_config = config::load_config(common::DEFAULT_CONFIG_DIR);
-    parse::parse_all(input);
+    // let user_config = config::load_config(common::DEFAULT_CONFIG_DIR);
+    let user_config = config::load_config(config_dir);
+    if user_config.is_err() {
+        error_and_exit("could not parse config file");
+    }
+    let user_config = user_config.unwrap();
+
+    let data = parse::parse_all(&user_config.content_path);
+    if data.is_err() {
+        error_and_exit("error when parsing content dir");
+    }
+    let data = data.unwrap();
+
+    gen::generate_all(&data, &user_config);
 
 }
 

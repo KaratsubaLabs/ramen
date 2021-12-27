@@ -16,3 +16,5 @@ $ ./ramen
 
 - [ ] rewrite builder pattern (a lot of duplicated code)
 - [ ] support decimal episode numbers (rust doesn't have Ord on f32?)
+- [ ] error output on invalid configs
+- [ ] better error handling in commands.rs
