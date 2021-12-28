@@ -4,6 +4,7 @@
 use std::fs;
 use std::fs::File;
 use std::io::{BufWriter, Write};
+use std::cmp::PartialOrd;
 
 use super::common::{BoxResult};
 use super::config::{UserConfig};
@@ -214,11 +215,15 @@ fn write_episodes_container(writer: &mut BufWriter<File>, anime_data: &AnimeData
     for (episode_number, episode_data) in &anime_data.episodes {
 
         let duration = "-"; // TODO implement duration
-        let download_html = r###"<a href="">mp3</a>"###;
+        let file_location = format!("{files_url}/{dir_name}/files/{filename}", files_url = &user_config.files_url, dir_name = &anime_data.dir_name, filename = episode_data.filename);
+        let download_html = format!(r###"<a href="{file_location}">mp3</a>"###, file_location = file_location);
 
         let mut subtitle_html: Vec<String> = Vec::new();
-        for subtitle in &episode_data.subtitles {
-            subtitle_html.push(format!(r###"<a href="">{lang}</a>"###, lang = subtitle.language));
+        let mut subtitle_list = episode_data.subtitles.clone();
+        subtitle_list.sort_by(|a, b| (&a.language).partial_cmp(&b.language).unwrap());
+        for subtitle in subtitle_list {
+            let file_location = format!("{files_url}/{dir_name}/subtitles/{filename}", files_url = &user_config.files_url, dir_name = &anime_data.dir_name, filename = subtitle.filename);
+            subtitle_html.push(format!(r###"<a href="{file_location}">{lang}</a>"###, file_location = file_location, lang = subtitle.language));
         }
         let subtitle_html: String = subtitle_html.join(" | ");
 

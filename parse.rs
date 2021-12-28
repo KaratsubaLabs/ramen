@@ -30,13 +30,14 @@ pub struct AnimeData {
 pub struct EpisodeData {
     pub name: Option<String>,
     pub subtitles: Vec<SubtitleData>,
+    pub filename: String,
     // duration
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SubtitleData {
     pub language: String,
-    // subtitle file
+    pub filename: String,
 }
 
 #[derive(Debug)]
@@ -63,10 +64,11 @@ struct AnimeMetaBuiilder {
 }
 
 impl EpisodeData {
-    pub fn new() -> Self {
+    pub fn new(filename: &str) -> Self {
         EpisodeData{
             name: None,
-            subtitles: Vec::new()
+            subtitles: Vec::new(),
+            filename: filename.to_string()
         }
     }
 }
@@ -241,7 +243,7 @@ fn parse_episode_file(ep_file: &Path) -> Option<(u8,EpisodeData)> {
     let episode_number = ep_file.file_stem()?.to_str()?.parse::<u8>().ok()?;
     let extension = ep_file.extension()?.to_str()?;
 
-    let mut episode_data = EpisodeData::new();
+    let mut episode_data = EpisodeData::new(ep_file.file_name()?.to_str()?);
 
     // TODO check if file is video file
 
@@ -264,6 +266,7 @@ fn parse_subtitle_file(sub_file: &Path) -> Option<(u8,SubtitleData)> {
     let language = split.1;
 
     let subtitle_data = SubtitleData{
+        filename: filename.to_string(),
         language: language.to_string()
     };
     Some((episode_number,subtitle_data))

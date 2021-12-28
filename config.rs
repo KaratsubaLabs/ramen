@@ -13,6 +13,7 @@ use super::error::{SimpleError};
 #[derive(Debug)]
 pub struct UserConfig {
     pub site_url: String,
+    pub files_url: String,
     pub config_dir: PathBuf,
     pub content_path: PathBuf, // location of raw anime files
     pub static_path: PathBuf, // location of outputted static generated files
@@ -21,6 +22,7 @@ pub struct UserConfig {
 #[derive(Debug)]
 pub struct UserConfigBuilder {
     pub site_url: Option<String>,
+    pub files_url: Option<String>,
     pub config_dir: PathBuf,
     pub content_path: Option<PathBuf>,
     pub static_path: Option<PathBuf>,
@@ -30,6 +32,7 @@ impl UserConfigBuilder {
     pub fn new(config_dir: &Path) -> UserConfigBuilder {
         UserConfigBuilder{
             site_url: None,
+            files_url: None,
             config_dir: config_dir.to_path_buf(),
             content_path: None,
             static_path: None,
@@ -38,6 +41,10 @@ impl UserConfigBuilder {
 
     pub fn site_url(mut self, site_url: String) -> Self {
         self.site_url = Some(site_url);
+        self
+    }
+    pub fn files_url(mut self, files_url: String) -> Self {
+        self.files_url = Some(files_url);
         self
     }
     pub fn content_path(mut self, content_path: &str) -> Self {
@@ -53,6 +60,7 @@ impl UserConfigBuilder {
     pub fn build(self) -> Option<UserConfig> {
         Some(UserConfig {
             site_url: self.site_url?,
+            files_url: self.files_url?,
             config_dir: self.config_dir,
             content_path: self.content_path?,
             static_path: self.static_path?,
@@ -78,6 +86,7 @@ pub fn load_config(config_dir: &str) -> BoxResult<UserConfig> {
 
         builder = match split.0 {
             "site_url" => builder.site_url(split.1.to_string()),
+            "files_url" => builder.files_url(split.1.to_string()),
             "content_path" => builder.content_path(split.1),
             "static_path" => builder.static_path(split.1),
             _ => builder
