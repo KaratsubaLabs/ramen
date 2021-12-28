@@ -68,9 +68,8 @@ impl UserConfigBuilder {
     }
 }
 
-pub fn load_config(config_dir: &str) -> BoxResult<UserConfig> {
+pub fn load_config(path: &Path) -> BoxResult<UserConfig> {
 
-    let path = PathBuf::from(config_dir);
     let file = File::open(&path.join(common::CONFIG_FILE_NAME))?;
     let reader = io::BufReader::new(file);
 
