@@ -1,12 +1,16 @@
 
 // entry point to cli commands
 
+use std::fs;
+use std::fs::File;
+use std::io::prelude::*;
 use std::env;
 use std::path::{Path, PathBuf};
 
 use super::parse;
 use super::gen;
 use super::config;
+use super::config::{UserConfig};
 use super::error::{CommandError};
 
 static HELP_MSG: &str = "\
@@ -15,7 +19,7 @@ ramen [-v] [-c <config>] <command>
 
 COMMANDS:
 init
-add
+add <anime-name>
 build
 clean
 help
@@ -59,15 +63,19 @@ pub fn argparse(args: &[String]) {
     }
 }
 
-fn dispatch_command(args: &mut [String]) -> CommandResult<()> {
+fn dispatch_command(args: &mut Vec<String>) -> CommandResult<()> {
 
     let flags = parse_flags(args)?;
-    let c = args.get(0).ok_or(CommandError::with_help())?;
+    let c: &str = &args.get(0).ok_or(CommandError::with_help())?.clone();
+    args.remove(0);
 
-    match c as &str {
-        "init"  => init(&flags),
-        "add"   => add(&flags),
-        "build" => build(&flags),
+    let user_config = config::load_config(&flags.config_dir)
+        .or(Err(CommandError::with_error("could not parse config file")))?;
+
+    match c {
+        "init"  => init(&flags, &user_config),
+        "add"   => add(args, &flags, &user_config),
+        "build" => build(&flags, &user_config),
         "clean" => clean(&flags),
         "help"  => help(),
         _       => Err(CommandError::with_help())
@@ -76,41 +84,66 @@ fn dispatch_command(args: &mut [String]) -> CommandResult<()> {
     Ok(())
 }
 
-fn parse_flags(mut args: &mut [String]) -> CommandResult<Flags> {
+fn parse_flags(args: &mut Vec<String>) -> CommandResult<Flags> {
     
     let mut flags = Flags::new().ok_or(CommandError::with_error("could not init flags"))?;
 
     while args.len() > 0 {
         match &args[0] as &str {
             "-c" => {
-                args = &mut args[1..];
+                args.remove(0);
                 let config_dir = args.get(0).ok_or(CommandError::with_help())?;
                 flags.config_dir = PathBuf::from(config_dir);
             },
             "-v" => flags.verbose = true,
-            _    => () // should send help message
+            _    => break
         }
-        args = &mut args[1..];
+        args.remove(0);
     }
 
     Ok(flags)
 }
 
-fn init(flags: &Flags) -> CommandResult<()> {
+fn init(flags: &Flags, user_config: &UserConfig) -> CommandResult<()> {
 
     Ok(())
 }
 
-fn add(flags: &Flags) -> CommandResult<()> {
+fn add(args: &mut Vec<String>, flags: &Flags, user_config: &UserConfig) -> CommandResult<()> {
+
+    let anime_name: &str = &args.get(0).ok_or(CommandError::with_help())?.clone();
+    args.remove(0);
+
+    let anime_path = &user_config.content_path.join(anime_name);
+    if anime_path.is_dir() {
+        return Err(CommandError::with_error(&format!("anime with name {} already exists", &anime_name)));
+    }
+
+    fs::create_dir(&anime_path)
+        .or(Err(CommandError::with_error(&format!("could not create dir for anime {}", &anime_name))))?; 
+    fs::create_dir(anime_path.join("data"))
+        .or(Err(CommandError::with_error("could not create data dir")))?; 
+    fs::create_dir(anime_path.join("files"))
+        .or(Err(CommandError::with_error("could not create files dir")))?; 
+    fs::create_dir(anime_path.join("subtitles"))
+        .or(Err(CommandError::with_error("could not create subtitles dir")))?; 
+
+    let mut f = File::create(&anime_path.join("data").join("metadata"))
+        .or(Err(CommandError::with_error("could not create metadata file")))?;
+
+    let default_meta = format!(r"
+title      = {anime_name}
+synopsis   = synopsis
+anime_type = tv
+", anime_name = anime_name);
+
+    f.write_all(default_meta.as_bytes())
+        .or(Err(CommandError::with_error("could not write default metadata file")))?;
 
     Ok(())
 }
 
-fn build(flags: &Flags) -> CommandResult<()> {
-
-    // let user_config = config::load_config(common::DEFAULT_CONFIG_DIR);
-    let user_config = config::load_config(&flags.config_dir)
-        .or(Err(CommandError::with_error("could not parse config file")))?;
+fn build(flags: &Flags, user_config: &UserConfig) -> CommandResult<()> {
 
     let data = parse::parse_all(&user_config.content_path)
         .or(Err(CommandError::with_error("error when parsing content dir")))?;
