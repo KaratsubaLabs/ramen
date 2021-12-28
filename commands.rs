@@ -4,7 +4,6 @@
 use super::parse;
 use super::gen;
 use super::config;
-use super::common;
 
 static HELP_MSG: &str = "\
 USAGE:

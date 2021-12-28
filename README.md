@@ -8,8 +8,8 @@ and manga.
 
 compile and run **ramen**:
 ```
-$ rustc ramen.rs
-$ ./ramen
+$ cargo build
+$ ./target/debug/ramen
 ```
 
 ## TODO

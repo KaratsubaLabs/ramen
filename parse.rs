@@ -4,7 +4,7 @@
 use std::fs;
 use std::fs::File;
 use std::ffi::OsString;
-use std::path::{PathBuf, Path};
+use std::path::Path;
 use std::io;
 use std::io::prelude::*;
 use std::collections::BTreeMap;
@@ -220,6 +220,8 @@ fn parse_meta(meta_path: &Path) -> BoxResult<AnimeMeta> {
             "synopsis" => builder.synopsis(split.1.to_string()),
             "anime_type" => builder.anime_type(split.1.to_string()),
             "img_url" => builder.img_url(split.1.to_string()),
+            "release_year" => builder.release_year(split.1.to_string()),
+            "tags" => builder.tags(split.1.to_string()),
             _ => builder
         }
     }

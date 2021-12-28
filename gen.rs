@@ -1,14 +1,10 @@
 
 // generate static pages
 
-use std::string::String;
-use std::path::{PathBuf, Path};
 use std::fs;
 use std::fs::File;
 use std::io::{BufWriter, Write};
 
-use super::config;
-use super::common;
 use super::common::{BoxResult};
 use super::config::{UserConfig};
 use super::parse::{AnimeData};
@@ -16,6 +12,10 @@ use super::parse::{AnimeData};
 pub fn generate_all(data: &Vec<AnimeData>, user_config: &UserConfig) -> BoxResult<()> {
 
     generate_index_page(data, user_config)?;
+
+    for anime_data in data {
+        generate_anime_info_page(anime_data, user_config)?;        
+    }
 
     Ok(())
 }
@@ -114,21 +114,77 @@ fn generate_anime_info_page(anime_data: &AnimeData, user_config: &UserConfig) ->
 "###;
     writer.write_all(html.as_bytes())?;
 
+    write_cover_container(&mut writer, anime_data, user_config)?;
+
+    write_info_container(&mut writer, anime_data, user_config)?;
+
+    let html = r###"
+        </div>
+    </body>
+</html>
+"###;
+    writer.write_all(html.as_bytes())?;
 
     Ok(())
 }
 
 fn write_cover_container(writer: &mut BufWriter<File>, anime_data: &AnimeData, user_config: &UserConfig) -> BoxResult<()> {
 
-    /* 
-    let img_url = anime_data.meta.img_url.as_ref().unwrap_or(String::new());
+    // TODO move this somewhere else
+    let default_img_url = "#";
+
+    let img_url = anime_data.meta.img_url.as_ref();
+    let img_url = match img_url {
+        Some(_x) => img_url.unwrap(),
+        None => default_img_url
+    };
+
     let html = format!(r###"
                 <div class="animepage-cover-container">
                     <img class="cover-img" src="{img_url}" />
                 </div>
 "###, img_url = img_url);
-    */
+    writer.write_all(html.as_bytes())?;
 
+    Ok(())
+}
+
+fn write_info_container(writer: &mut BufWriter<File>, anime_data: &AnimeData, user_config: &UserConfig) -> BoxResult<()> {
+
+    let html = format!(r###"
+                <div class="animepage-info-container">
+                    <hgroup>
+                        <h1>{title}</h1>
+"###, title = &anime_data.meta.title);
+    writer.write_all(html.as_bytes())?;
+
+    if anime_data.meta.original_title.is_some() {
+        let html = format!(r###"
+                        <p>{original_title}</p>
+    "###, original_title= &anime_data.meta.original_title.as_ref().unwrap());
+        writer.write_all(html.as_bytes())?;
+    }
+
+    let html = format!(r###"
+                    </hgroup>
+                    <p>{synopsis}</p>
+"###, synopsis = &anime_data.meta.synopsis);
+    writer.write_all(html.as_bytes())?;
+
+    if anime_data.meta.tags.as_ref().is_some() {
+
+        let tags_string = anime_data.meta.tags.as_ref().unwrap().join(", ");
+        let html = format!(r###"
+                    <b>tags:</b> {tags_string}
+"###, tags_string = tags_string);
+        writer.write_all(html.as_bytes())?;
+    }
+
+    let html = r###"
+                </div>
+"###;
+    writer.write_all(html.as_bytes())?;
+    
     Ok(())
 }
 
