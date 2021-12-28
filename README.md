@@ -1,19 +1,33 @@
 
-# Ramen
+# ramen
 
 **ramen** is the rust static site generator for からつばLABS hosted anime
 and manga.
 
-## BUILD FOR DEVELOPMENT
+## USAGE
 
-build **ramen** in debug mode
+```
+$ ramen build [config directory]
+```
+
+## CONFIGURATION
+
+**ramen** reads configuration from the `ramenrc` file:
+```
+site_url     =
+files_url    =
+content_path =
+static_path  =
+```
+
+## BUILD
+
+build **ramen** in debug mode:
 ```
 $ make dev-build
 ```
 
-## BUILD FOR PRODUCTION
-
-compile and install **ramen**:
+build and install **ramen**:
 ```
 $ make build && sudo make install
 ```
@@ -49,3 +63,4 @@ follows:
 - [ ] support decimal episode numbers (rust doesn't have Ord on f32?)
 - [ ] error output on invalid configs
 - [ ] better error handling in commands.rs
+

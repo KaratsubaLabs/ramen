@@ -10,6 +10,8 @@ USAGE:
 ramen [command]
 
 COMMANDS:
+init
+add
 build
 clean
 ";
@@ -22,6 +24,8 @@ pub fn argparse(args: &[String]) {
     }
 
     match &c.unwrap() as &str {
+        "init" => init(),
+        "add" => add(),
         "build" => build(&args[1..]),
         "clean" => clean(),
         _ => help_and_exit(),
@@ -37,6 +41,14 @@ fn help_and_exit() {
 fn error_and_exit(msg: &str) {
     println!("ERROR: {}", msg);
     std::process::exit(1);
+}
+
+fn init() {
+
+}
+
+fn add() {
+
 }
 
 fn build(args: &[String]) {
