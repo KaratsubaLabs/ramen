@@ -4,6 +4,7 @@ mod common;
 mod config;
 mod gen;
 mod parse;
+mod error;
 
 fn main() {
 

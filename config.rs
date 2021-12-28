@@ -8,6 +8,7 @@ use std::path::{PathBuf, Path};
 
 use super::common;
 use super::common::{BoxResult};
+use super::error::{SimpleError};
 
 #[derive(Debug)]
 pub struct UserConfig {
@@ -83,8 +84,7 @@ pub fn load_config(config_dir: &str) -> BoxResult<UserConfig> {
         }
     }
 
-    // TODO do proper error handling
-    let user_config = builder.build().unwrap();
+    let user_config = builder.build().ok_or(SimpleError::new("failed to build user config"))?;
 
     println!("{:?}", user_config);
     

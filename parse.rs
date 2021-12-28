@@ -10,6 +10,7 @@ use std::io::prelude::*;
 use std::collections::BTreeMap;
 
 use super::common::{BoxResult};
+use super::error::{SimpleError};
 
 #[derive(Debug)]
 pub enum AnimeType {
@@ -45,8 +46,8 @@ pub struct AnimeMeta {
     pub synopsis: String,
     pub anime_type: AnimeType,
     pub img_url: Option<String>, // this can also be a url type maybe
-    // release date
-    // tags
+    pub release_year: Option<String>,
+    pub tags: Option<Vec<String>>,
 }
 
 // TODO: make this better and less redundant
@@ -56,7 +57,9 @@ struct AnimeMetaBuiilder {
     pub original_title: Option<String>,
     pub synopsis: Option<String>,
     pub anime_type: Option<AnimeType>,
-    pub img_url: Option<String>
+    pub img_url: Option<String>,
+    pub release_year: Option<String>,
+    pub tags: Option<Vec<String>>,
 }
 
 impl EpisodeData {
@@ -76,6 +79,8 @@ impl AnimeMetaBuiilder {
             synopsis: None,
             anime_type: None,
             img_url: None,
+            release_year: None,
+            tags: None,
         }
     }
 
@@ -105,16 +110,26 @@ impl AnimeMetaBuiilder {
         self.img_url = Some(img_url);
         self
     }
+    pub fn release_year(mut self, release_year: String) -> Self {
+        self.release_year = Some(release_year);
+        self
+    }
+    pub fn tags(mut self, tags: String) -> Self {
+        let tags_list: Vec<String> = tags.split(",").map(|tag| tag.trim().to_owned()).collect();
+        self.tags = Some(tags_list);
+        self
+    }
 
-    pub fn build(self) -> AnimeMeta {
-        // TODO handle the unwrap panics
-        AnimeMeta {
+    pub fn build(self) -> Option<AnimeMeta> {
+        Some(AnimeMeta {
             title: self.title.unwrap(),
             original_title: self.original_title,
             synopsis: self.synopsis.unwrap(),
             anime_type: self.anime_type.unwrap(),
             img_url: self.img_url,
-        }
+            release_year: self.release_year,
+            tags: self.tags,
+        })
     }
 }
 
@@ -144,13 +159,14 @@ fn parse_anime(anime_dir: &Path) -> BoxResult<AnimeData> {
     let path = anime_dir.join("files");
     let mut episodes: BTreeMap<u8, EpisodeData> = BTreeMap::new();
     for f in fs::read_dir(path)? {
-        let f = f?; // probably don't wanna terminate function when this fails
+        if f.is_err() { continue; }
+        let f = f?;
 
         let episode = parse_episode_file(&f.path());
-        if episode.is_some() {
-            let episode = episode.unwrap();
-            episodes.insert(episode.0, episode.1);
-        }
+        if episode.is_none() { continue; }
+
+        let episode = episode.unwrap();
+        episodes.insert(episode.0, episode.1);
     }
 
     // grab list of all subtitles
@@ -169,10 +185,7 @@ fn parse_anime(anime_dir: &Path) -> BoxResult<AnimeData> {
         ep_data.subtitles.push(subtitle.1);
     }
 
-    // TODO ERROR HANDLING! (actually return result error)
-    let dir_name = anime_dir.file_name();
-    if dir_name.is_none() { /* return error here */ }
-    let dir_name = dir_name.unwrap();
+    let dir_name = anime_dir.file_name().ok_or(SimpleError::new("failed to parse dir_name"))?;
 
     let anime_data = AnimeData {
         meta: meta,
@@ -196,10 +209,8 @@ fn parse_meta(meta_path: &Path) -> BoxResult<AnimeMeta> {
     for line in reader.lines() {
         let line = line?;
         let split = line.split_once("=");
-        if split.is_none() {
-            // TODO: possibly warn invalid config
-            continue;
-        }
+        if split.is_none() { continue; }
+
         let mut split = split.unwrap();
         split = (split.0.trim(), split.1.trim());
 
@@ -213,7 +224,7 @@ fn parse_meta(meta_path: &Path) -> BoxResult<AnimeMeta> {
         }
     }
 
-    let anime_data = builder.build();
+    let anime_data = builder.build().ok_or(SimpleError::new("failed to build anime data"))?;
     println!("{:?}", anime_data);
 
     Ok(anime_data)
@@ -224,10 +235,8 @@ fn parse_episode_file(ep_file: &Path) -> Option<(u8,EpisodeData)> {
     if !ep_file.is_file() { return None; }
 
     // grab file name and extension
-    let filename = ep_file.file_name()?.to_str()?;
-    // TODO can use and std::path::file_stem and std::path::extension instead
-    let split = filename.rsplit_once(".")?;
-    let episode_number = split.0.parse::<u8>().ok()?;
+    let episode_number = ep_file.file_stem()?.to_str()?.parse::<u8>().ok()?;
+    let extension = ep_file.extension()?.to_str()?;
 
     let mut episode_data = EpisodeData::new();
 

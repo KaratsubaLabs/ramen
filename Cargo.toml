@@ -7,4 +7,3 @@ name = "ramen"
 path = "ramen.rs"
 
 [dependencies]
-
