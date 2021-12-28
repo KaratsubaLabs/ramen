@@ -138,7 +138,7 @@ fn generate_anime_info_page(anime_data: &AnimeData, user_config: &UserConfig) ->
     Ok(())
 }
 
-fn write_cover_container(writer: &mut BufWriter<File>, anime_data: &AnimeData, user_config: &UserConfig) -> BoxResult<()> {
+fn write_cover_container(writer: &mut BufWriter<File>, anime_data: &AnimeData, _user_config: &UserConfig) -> BoxResult<()> {
 
     // TODO move this somewhere else
     let default_img_url = "#";
@@ -159,7 +159,7 @@ fn write_cover_container(writer: &mut BufWriter<File>, anime_data: &AnimeData, u
     Ok(())
 }
 
-fn write_info_container(writer: &mut BufWriter<File>, anime_data: &AnimeData, user_config: &UserConfig) -> BoxResult<()> {
+fn write_info_container(writer: &mut BufWriter<File>, anime_data: &AnimeData, _user_config: &UserConfig) -> BoxResult<()> {
 
     let html = format!(r###"
                 <div class="animepage-info-container">

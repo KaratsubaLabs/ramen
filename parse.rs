@@ -3,7 +3,6 @@
 
 use std::fs;
 use std::fs::File;
-use std::ffi::OsString;
 use std::path::Path;
 use std::io;
 use std::io::prelude::*;
