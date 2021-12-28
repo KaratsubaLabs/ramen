@@ -28,18 +28,18 @@ fn generate_index_page(data: &Vec<AnimeData>, user_config: &UserConfig) -> BoxRe
     let f = File::create(index_path)?;
     let mut writer = BufWriter::new(f);
 
-    let html = r###"
+    let html = format!(r###"
 <!DOCTYPE html>
 <html>
     <head>
         <meta charset="utf-8">
-        <link rel="stylesheet" href="../styles/index.css">
+        <link rel="stylesheet" href="{site_url}/styles/index.css">
         <link rel="shortcut icon" href="#">
         <title>ramen</title>
     </head>
 
     <body>
-"###;
+"###, site_url = &user_config.site_url);
     writer.write_all(html.as_bytes())?;
 
     write_navbar(&mut writer, user_config)?;
@@ -74,9 +74,11 @@ fn generate_index_page(data: &Vec<AnimeData>, user_config: &UserConfig) -> BoxRe
 
 fn write_index_entry(writer: &mut BufWriter<File>, anime_data: &AnimeData, user_config: &UserConfig) -> BoxResult<()> {
 
+    let anime_page_link = format!("{}/anime/{}.html", &user_config.site_url, &anime_data.dir_name);
+
     let html = format!(r###"
-<a href="#"><li>{title}</li></a>
-"###, title = &anime_data.meta.title);
+<a href="{anime_page_link}"><li>{title}</li></a>
+"###, anime_page_link = anime_page_link, title = &anime_data.meta.title);
     writer.write_all(html.as_bytes())?;
 
     Ok(())
@@ -88,7 +90,7 @@ fn generate_anime_info_page(anime_data: &AnimeData, user_config: &UserConfig) ->
     fs::create_dir_all(anime_path)?;
 
     let mut filename = anime_data.dir_name.clone();
-    filename.push(".html");
+    filename.push_str(".html");
     let f = File::create(&anime_path.join(&filename))?;
     let mut writer = BufWriter::new(f);
 
@@ -97,13 +99,13 @@ fn generate_anime_info_page(anime_data: &AnimeData, user_config: &UserConfig) ->
 <html>
     <head>
         <meta charset="utf-8">
-        <link rel="stylesheet" href="../styles/index.css">
+        <link rel="stylesheet" href="{site_url}/styles/index.css">
         <link rel="shortcut icon" href="#">
         <title>ramen | {title}</title>
     </head>
 
     <body>
-"###, title = &anime_data.meta.title);
+"###, site_url = &user_config.site_url, title = &anime_data.meta.title);
     writer.write_all(html.as_bytes())?;
 
     write_navbar(&mut writer, user_config)?;
@@ -120,6 +122,13 @@ fn generate_anime_info_page(anime_data: &AnimeData, user_config: &UserConfig) ->
 
     let html = r###"
         </div>
+        <hr>
+"###;
+    writer.write_all(html.as_bytes())?;
+
+    write_episodes_container(&mut writer, anime_data, user_config)?;
+
+    let html = r###"
     </body>
 </html>
 "###;
@@ -185,6 +194,51 @@ fn write_info_container(writer: &mut BufWriter<File>, anime_data: &AnimeData, us
 "###;
     writer.write_all(html.as_bytes())?;
     
+    Ok(())
+}
+
+fn write_episodes_container(writer: &mut BufWriter<File>, anime_data: &AnimeData, user_config: &UserConfig) -> BoxResult<()> {
+
+    let html = r###"
+            <div class="animpage-episodes-container">
+                <table class="episodes-table">
+                    <tr>
+                        <th>Episode</th>
+                        <th>Duration</th>
+                        <th>Video</th>
+                        <th>Subs</th>
+                    </tr>
+"###;
+    writer.write_all(html.as_bytes())?;
+
+    for (episode_number, episode_data) in &anime_data.episodes {
+
+        let duration = "-"; // TODO implement duration
+        let download_html = r###"<a href="">mp3</a>"###;
+
+        let mut subtitle_html: Vec<String> = Vec::new();
+        for subtitle in &episode_data.subtitles {
+            subtitle_html.push(format!(r###"<a href="">{lang}</a>"###, lang = subtitle.language));
+        }
+        let subtitle_html: String = subtitle_html.join(" | ");
+
+        let html = format!(r###"
+                    <tr>
+                        <td>{episode_number}</td>
+                        <td>{duration}</td>
+                        <td>{download_html}</td>
+                        <td>{subtitle_html}</td>
+                    </tr>
+"###, episode_number = episode_number, duration = duration, download_html = download_html, subtitle_html = subtitle_html);
+        writer.write_all(html.as_bytes())?;
+    }
+
+    let html = r###"
+                </table>
+            </div>
+"###;
+    writer.write_all(html.as_bytes())?;
+
     Ok(())
 }
 

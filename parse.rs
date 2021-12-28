@@ -23,7 +23,7 @@ pub enum AnimeType {
 pub struct AnimeData {
     pub meta: AnimeMeta,
     pub episodes: BTreeMap<u8, EpisodeData>,
-    pub dir_name: OsString,
+    pub dir_name: String,
 }
 
 #[derive(Debug)]
@@ -185,12 +185,13 @@ fn parse_anime(anime_dir: &Path) -> BoxResult<AnimeData> {
         ep_data.subtitles.push(subtitle.1);
     }
 
-    let dir_name = anime_dir.file_name().ok_or(SimpleError::new("failed to parse dir_name"))?;
+    let dir_name = anime_dir.file_name().ok_or(SimpleError::new("failed to parse dir_name to os string"))?;
+    let dir_name = dir_name.to_str().ok_or(SimpleError::new("failed to parse dir_name to string"))?;
 
     let anime_data = AnimeData {
         meta: meta,
         episodes: episodes,
-        dir_name: dir_name.to_os_string()
+        dir_name: dir_name.to_string()
     };
 
     println!("{:?}", anime_data);

@@ -87,3 +87,11 @@ hgroup p {
 .animepage-info-container {
 }
 
+.episodes-table {
+    margin-top: 2rem;
+    width: 100%;
+}
+.episodes-table tr {
+    text-align: left;
+}
+
