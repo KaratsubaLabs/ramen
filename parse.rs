@@ -3,6 +3,7 @@
 
 use std::fs;
 use std::fs::File;
+use std::ffi::OsString;
 use std::path::{PathBuf, Path};
 use std::io;
 use std::io::prelude::*;
@@ -20,7 +21,8 @@ pub enum AnimeType {
 #[derive(Debug)]
 pub struct AnimeData {
     pub meta: AnimeMeta,
-    pub episodes: BTreeMap<u8, EpisodeData>
+    pub episodes: BTreeMap<u8, EpisodeData>,
+    pub dir_name: OsString,
 }
 
 #[derive(Debug)]
@@ -42,7 +44,7 @@ pub struct AnimeMeta {
     pub original_title: Option<String>,
     pub synopsis: String,
     pub anime_type: AnimeType,
-    // cover image
+    pub img_url: Option<String>, // this can also be a url type maybe
     // release date
     // tags
 }
@@ -54,6 +56,7 @@ struct AnimeMetaBuiilder {
     pub original_title: Option<String>,
     pub synopsis: Option<String>,
     pub anime_type: Option<AnimeType>,
+    pub img_url: Option<String>
 }
 
 impl EpisodeData {
@@ -71,7 +74,8 @@ impl AnimeMetaBuiilder {
             title: None,
             original_title: None,
             synopsis: None,
-            anime_type: None
+            anime_type: None,
+            img_url: None,
         }
     }
 
@@ -97,6 +101,10 @@ impl AnimeMetaBuiilder {
         };
         self
     }
+    pub fn img_url(mut self, img_url: String) -> Self {
+        self.img_url = Some(img_url);
+        self
+    }
 
     pub fn build(self) -> AnimeMeta {
         // TODO handle the unwrap panics
@@ -105,6 +113,7 @@ impl AnimeMetaBuiilder {
             original_title: self.original_title,
             synopsis: self.synopsis.unwrap(),
             anime_type: self.anime_type.unwrap(),
+            img_url: self.img_url,
         }
     }
 }
@@ -160,9 +169,15 @@ fn parse_anime(anime_dir: &Path) -> BoxResult<AnimeData> {
         ep_data.subtitles.push(subtitle.1);
     }
 
+    // TODO ERROR HANDLING! (actually return result error)
+    let dir_name = anime_dir.file_name();
+    if dir_name.is_none() { /* return error here */ }
+    let dir_name = dir_name.unwrap();
+
     let anime_data = AnimeData {
         meta: meta,
-        episodes: episodes
+        episodes: episodes,
+        dir_name: dir_name.to_os_string()
     };
 
     println!("{:?}", anime_data);
@@ -193,6 +208,7 @@ fn parse_meta(meta_path: &Path) -> BoxResult<AnimeMeta> {
             "original_title" => builder.original_title(split.1.to_string()),
             "synopsis" => builder.synopsis(split.1.to_string()),
             "anime_type" => builder.anime_type(split.1.to_string()),
+            "img_url" => builder.img_url(split.1.to_string()),
             _ => builder
         }
     }
@@ -209,6 +225,7 @@ fn parse_episode_file(ep_file: &Path) -> Option<(u8,EpisodeData)> {
 
     // grab file name and extension
     let filename = ep_file.file_name()?.to_str()?;
+    // TODO can use and std::path::file_stem and std::path::extension instead
     let split = filename.rsplit_once(".")?;
     let episode_number = split.0.parse::<u8>().ok()?;
 
