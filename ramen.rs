@@ -5,6 +5,7 @@ mod config;
 mod gen;
 mod parse;
 mod error;
+mod api;
 
 fn main() {
 

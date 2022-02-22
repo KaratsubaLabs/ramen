@@ -12,6 +12,7 @@ use super::gen;
 use super::config;
 use super::config::{UserConfig};
 use super::error::{CommandError};
+use super::api;
 
 static HELP_MSG: &str = "\
 USAGE:
@@ -20,6 +21,7 @@ ramen [-v] [-c <config>] <command>
 COMMANDS:
 init
 add <anime-name>
+meta <anime-name>
 build
 clean
 help
@@ -75,6 +77,7 @@ fn dispatch_command(args: &mut Vec<String>) -> CommandResult<()> {
     match c {
         "init"  => init(&flags, &user_config),
         "add"   => add(args, &flags, &user_config),
+        "meta"  => meta(args, &flags),
         "build" => build(&flags, &user_config),
         "clean" => clean(&flags),
         "help"  => help(),
@@ -139,6 +142,17 @@ anime_type = tv
 
     f.write_all(default_meta.as_bytes())
         .or(Err(CommandError::with_error("could not write default metadata file")))?;
+
+    Ok(())
+}
+
+fn meta(args: &mut Vec<String>, flags: &Flags) -> CommandResult<()> {
+
+    let anime_name: &str = &args.get(0).ok_or(CommandError::with_help())?.clone();
+    args.remove(0);
+
+    api::search_anime(anime_name)
+        .or(Err(CommandError::with_error("error making api request")))?;
 
     Ok(())
 }
