@@ -4,7 +4,7 @@ INSTALL_DIR := /usr/local/bin
 .PHONY: dev-build build install uninstall
 
 dev-build:
-	cargo build
+	cargo build -j4
 
 build:
 	cargo build --release

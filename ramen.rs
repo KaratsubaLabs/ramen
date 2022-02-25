@@ -1,4 +1,6 @@
 
+extern crate serde;
+
 mod commands;
 mod common;
 mod config;

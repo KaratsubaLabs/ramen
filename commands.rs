@@ -151,7 +151,7 @@ fn meta(args: &mut Vec<String>, flags: &Flags) -> CommandResult<()> {
     let anime_name: &str = &args.get(0).ok_or(CommandError::with_help())?.clone();
     args.remove(0);
 
-    api::search_anime(anime_name)
+    api::get_anime_meta(anime_name)
         .or(Err(CommandError::with_error("error making api request")))?;
 
     Ok(())

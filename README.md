@@ -2,7 +2,8 @@
 # ramen
 
 **ramen** is the rust static site generator for からつばLABS hosted anime
-and manga.
+and manga. **ramen** also has the ability to fetch metadata from myanimelist
+using the jikan api.
 
 ## USAGE
 
