@@ -15,7 +15,8 @@ use super::error::{SimpleError};
 pub enum AnimeType {
     TV,
     OVA,
-    Movie
+    Movie,
+    Special
 }
 
 #[derive(Debug)]
@@ -52,7 +53,7 @@ pub struct AnimeMeta {
 
 // TODO: make this better and less redundant
 #[derive(Debug)]
-struct AnimeMetaBuiilder {
+pub struct AnimeMetaBuiilder {
     pub title: Option<String>,
     pub original_title: Option<String>,
     pub synopsis: Option<String>,
@@ -103,6 +104,7 @@ impl AnimeMetaBuiilder {
             "tv" => Some(AnimeType::TV),
             "ova" => Some(AnimeType::OVA),
             "movie" => Some(AnimeType::Movie),
+            "special" => Some(AnimeType::Special),
             _ => None
         };
         self

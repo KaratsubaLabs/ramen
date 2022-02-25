@@ -8,7 +8,7 @@ use std::cmp::PartialOrd;
 
 use super::common::{BoxResult};
 use super::config::{UserConfig};
-use super::parse::{AnimeData};
+use super::parse::{AnimeData, AnimeMeta};
 
 pub fn generate_all(data: &Vec<AnimeData>, user_config: &UserConfig) -> BoxResult<()> {
 
@@ -260,3 +260,17 @@ fn write_navbar(writer: &mut BufWriter<File>, user_config: &UserConfig) -> BoxRe
     Ok(())
 }
 
+pub fn generate_meta_file(anime_meta: AnimeMeta) -> BoxResult<()> {
+
+    // required fields
+    println!("title = {}", anime_meta.title);
+    println!("synopsis = {}", anime_meta.synopsis);
+    println!("anime_type = tv"); // TODO hardcoded cuz lazy, need enum to string conversion in future
+
+    // optional fields
+    if (anime_meta.original_title.is_some()) {
+        println!("original_title = {}", anime_meta.original_title.unwrap());
+    }
+
+    Ok(())
+}
