@@ -1,5 +1,10 @@
+<div align="center">
 
-# ramen
+<h1>ラーメン / ramen</h1>
+
+static anime hosting site generator
+
+</div>
 
 **ramen** is the rust static site generator for からつばLABS hosted anime
 and manga. **ramen** also has the ability to fetch metadata from myanimelist

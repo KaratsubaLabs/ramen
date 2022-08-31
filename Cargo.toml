@@ -1,10 +1,11 @@
 [package]
 name = "ramen"
-version = "0.0.1"
-
-[[bin]]
-name = "ramen"
-path = "ramen.rs"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+authors = ["MrPicklePinosaur"]
+description = "static anime hosting site generator"
+repository = "https://github.com/KaratsubaLabs/ramen.git"
 
 [dependencies]
 reqwest = { version = "0.11.9", features = ["blocking", "json"] }

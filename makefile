@@ -1,13 +1,16 @@
 
 INSTALL_DIR := /usr/local/bin
 
-.PHONY: dev-build build install uninstall
+.PHONY: debug build devsetup install uninstall
 
-dev-build:
-	cargo build -j4
+debug:
+	cargo run
 
 build:
 	cargo build --release
+
+devsetup:
+	cp dev/hooks/* .git/hooks
 
 install: target/release/ramen
 	cp $< $(INSTALL_DIR)
