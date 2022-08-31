@@ -1,35 +1,37 @@
-
 // generate static pages
 
-use std::fs;
-use std::fs::File;
-use std::io::{BufWriter, Write};
-use std::cmp::PartialOrd;
+use std::{
+    cmp::PartialOrd,
+    fs,
+    fs::File,
+    io::{BufWriter, Write},
+};
 
-use super::common::{BoxResult};
-use super::config::{UserConfig};
-use super::parse::{AnimeData, AnimeMeta};
+use super::{
+    common::BoxResult,
+    config::UserConfig,
+    parse::{AnimeData, AnimeMeta},
+};
 
 pub fn generate_all(data: &Vec<AnimeData>, user_config: &UserConfig) -> BoxResult<()> {
-
     generate_index_page(data, user_config)?;
 
     for anime_data in data {
-        generate_anime_info_page(anime_data, user_config)?;        
+        generate_anime_info_page(anime_data, user_config)?;
     }
 
     Ok(())
 }
 
 fn generate_index_page(data: &Vec<AnimeData>, user_config: &UserConfig) -> BoxResult<()> {
-
     // TODO this function is very ugly looking lmao
 
     let index_path = &user_config.static_path.join("index.html");
     let f = File::create(index_path)?;
     let mut writer = BufWriter::new(f);
 
-    let html = format!(r###"
+    let html = format!(
+        r###"
 <!DOCTYPE html>
 <html>
     <head>
@@ -40,7 +42,9 @@ fn generate_index_page(data: &Vec<AnimeData>, user_config: &UserConfig) -> BoxRe
     </head>
 
     <body>
-"###, site_url = &user_config.site_url);
+"###,
+        site_url = &user_config.site_url
+    );
     writer.write_all(html.as_bytes())?;
 
     write_navbar(&mut writer, user_config)?;
@@ -69,24 +73,33 @@ fn generate_index_page(data: &Vec<AnimeData>, user_config: &UserConfig) -> BoxRe
 </html>
 "###;
     writer.write_all(html.as_bytes())?;
-    
+
     Ok(())
 }
 
-fn write_index_entry(writer: &mut BufWriter<File>, anime_data: &AnimeData, user_config: &UserConfig) -> BoxResult<()> {
+fn write_index_entry(
+    writer: &mut BufWriter<File>,
+    anime_data: &AnimeData,
+    user_config: &UserConfig,
+) -> BoxResult<()> {
+    let anime_page_link = format!(
+        "{}/anime/{}.html",
+        &user_config.site_url, &anime_data.dir_name
+    );
 
-    let anime_page_link = format!("{}/anime/{}.html", &user_config.site_url, &anime_data.dir_name);
-
-    let html = format!(r###"
+    let html = format!(
+        r###"
 <a href="{anime_page_link}"><li>{title}</li></a>
-"###, anime_page_link = anime_page_link, title = &anime_data.meta.title);
+"###,
+        anime_page_link = anime_page_link,
+        title = &anime_data.meta.title
+    );
     writer.write_all(html.as_bytes())?;
 
     Ok(())
 }
 
 fn generate_anime_info_page(anime_data: &AnimeData, user_config: &UserConfig) -> BoxResult<()> {
-
     let anime_path = &user_config.static_path.join("anime");
     fs::create_dir_all(anime_path)?;
 
@@ -95,7 +108,8 @@ fn generate_anime_info_page(anime_data: &AnimeData, user_config: &UserConfig) ->
     let f = File::create(&anime_path.join(&filename))?;
     let mut writer = BufWriter::new(f);
 
-    let html = format!(r###"
+    let html = format!(
+        r###"
 <!DOCTYPE html>
 <html>
     <head>
@@ -106,7 +120,10 @@ fn generate_anime_info_page(anime_data: &AnimeData, user_config: &UserConfig) ->
     </head>
 
     <body>
-"###, site_url = &user_config.site_url, title = &anime_data.meta.title);
+"###,
+        site_url = &user_config.site_url,
+        title = &anime_data.meta.title
+    );
     writer.write_all(html.as_bytes())?;
 
     write_navbar(&mut writer, user_config)?;
@@ -138,55 +155,75 @@ fn generate_anime_info_page(anime_data: &AnimeData, user_config: &UserConfig) ->
     Ok(())
 }
 
-fn write_cover_container(writer: &mut BufWriter<File>, anime_data: &AnimeData, _user_config: &UserConfig) -> BoxResult<()> {
-
+fn write_cover_container(
+    writer: &mut BufWriter<File>,
+    anime_data: &AnimeData,
+    _user_config: &UserConfig,
+) -> BoxResult<()> {
     // TODO move this somewhere else
     let default_img_url = "#";
 
     let img_url = anime_data.meta.img_url.as_ref();
     let img_url = match img_url {
         Some(_x) => img_url.unwrap(),
-        None => default_img_url
+        None => default_img_url,
     };
 
-    let html = format!(r###"
+    let html = format!(
+        r###"
                 <div class="animepage-cover-container">
                     <img class="cover-img" src="{img_url}" />
                 </div>
-"###, img_url = img_url);
+"###,
+        img_url = img_url
+    );
     writer.write_all(html.as_bytes())?;
 
     Ok(())
 }
 
-fn write_info_container(writer: &mut BufWriter<File>, anime_data: &AnimeData, _user_config: &UserConfig) -> BoxResult<()> {
-
-    let html = format!(r###"
+fn write_info_container(
+    writer: &mut BufWriter<File>,
+    anime_data: &AnimeData,
+    _user_config: &UserConfig,
+) -> BoxResult<()> {
+    let html = format!(
+        r###"
                 <div class="animepage-info-container">
                     <hgroup>
                         <h1>{title}</h1>
-"###, title = &anime_data.meta.title);
+"###,
+        title = &anime_data.meta.title
+    );
     writer.write_all(html.as_bytes())?;
 
     if anime_data.meta.original_title.is_some() {
-        let html = format!(r###"
+        let html = format!(
+            r###"
                         <p>{original_title}</p>
-    "###, original_title= &anime_data.meta.original_title.as_ref().unwrap());
+    "###,
+            original_title = &anime_data.meta.original_title.as_ref().unwrap()
+        );
         writer.write_all(html.as_bytes())?;
     }
 
-    let html = format!(r###"
+    let html = format!(
+        r###"
                     </hgroup>
                     <p>{synopsis}</p>
-"###, synopsis = &anime_data.meta.synopsis);
+"###,
+        synopsis = &anime_data.meta.synopsis
+    );
     writer.write_all(html.as_bytes())?;
 
     if anime_data.meta.tags.as_ref().is_some() {
-
         let tags_string = anime_data.meta.tags.as_ref().unwrap().join(", ");
-        let html = format!(r###"
+        let html = format!(
+            r###"
                     <b>tags:</b> {tags_string}
-"###, tags_string = tags_string);
+"###,
+            tags_string = tags_string
+        );
         writer.write_all(html.as_bytes())?;
     }
 
@@ -194,12 +231,15 @@ fn write_info_container(writer: &mut BufWriter<File>, anime_data: &AnimeData, _u
                 </div>
 "###;
     writer.write_all(html.as_bytes())?;
-    
+
     Ok(())
 }
 
-fn write_episodes_container(writer: &mut BufWriter<File>, anime_data: &AnimeData, user_config: &UserConfig) -> BoxResult<()> {
-
+fn write_episodes_container(
+    writer: &mut BufWriter<File>,
+    anime_data: &AnimeData,
+    user_config: &UserConfig,
+) -> BoxResult<()> {
     let html = r###"
             <div class="animpage-episodes-container">
                 <table class="episodes-table">
@@ -213,28 +253,50 @@ fn write_episodes_container(writer: &mut BufWriter<File>, anime_data: &AnimeData
     writer.write_all(html.as_bytes())?;
 
     for (episode_number, episode_data) in &anime_data.episodes {
-
         let duration = "-"; // TODO implement duration
-        let file_location = format!("{files_url}/{dir_name}/files/{filename}", files_url = &user_config.files_url, dir_name = &anime_data.dir_name, filename = episode_data.filename);
-        let download_html = format!(r###"<a href="{file_location}">mp3</a>"###, file_location = file_location);
+        let file_location = format!(
+            "{files_url}/{dir_name}/files/{filename}",
+            files_url = &user_config.files_url,
+            dir_name = &anime_data.dir_name,
+            filename = episode_data.filename
+        );
+        let download_html = format!(
+            r###"<a href="{file_location}">mp3</a>"###,
+            file_location = file_location
+        );
 
         let mut subtitle_html: Vec<String> = Vec::new();
         let mut subtitle_list = episode_data.subtitles.clone();
         subtitle_list.sort_by(|a, b| (&a.language).partial_cmp(&b.language).unwrap());
         for subtitle in subtitle_list {
-            let file_location = format!("{files_url}/{dir_name}/subtitles/{filename}", files_url = &user_config.files_url, dir_name = &anime_data.dir_name, filename = subtitle.filename);
-            subtitle_html.push(format!(r###"<a href="{file_location}">{lang}</a>"###, file_location = file_location, lang = subtitle.language));
+            let file_location = format!(
+                "{files_url}/{dir_name}/subtitles/{filename}",
+                files_url = &user_config.files_url,
+                dir_name = &anime_data.dir_name,
+                filename = subtitle.filename
+            );
+            subtitle_html.push(format!(
+                r###"<a href="{file_location}">{lang}</a>"###,
+                file_location = file_location,
+                lang = subtitle.language
+            ));
         }
         let subtitle_html: String = subtitle_html.join(" | ");
 
-        let html = format!(r###"
+        let html = format!(
+            r###"
                     <tr>
                         <td>{episode_number}</td>
                         <td>{duration}</td>
                         <td>{download_html}</td>
                         <td>{subtitle_html}</td>
                     </tr>
-"###, episode_number = episode_number, duration = duration, download_html = download_html, subtitle_html = subtitle_html);
+"###,
+            episode_number = episode_number,
+            duration = duration,
+            download_html = download_html,
+            subtitle_html = subtitle_html
+        );
         writer.write_all(html.as_bytes())?;
     }
 
@@ -248,20 +310,21 @@ fn write_episodes_container(writer: &mut BufWriter<File>, anime_data: &AnimeData
 }
 
 fn write_navbar(writer: &mut BufWriter<File>, user_config: &UserConfig) -> BoxResult<()> {
-
     // TODO maybe read these html snippets from file instead
-    let html = format!(r###"
+    let html = format!(
+        r###"
     <div class="navbar">
         <a class="app-logo-text" href="{site_url}">ラーメン</a> <a class="karat-text" href="https://github.com/KaratsubaLabs">BY からつばLABS</a>
     </div>
-"###, site_url = &user_config.site_url);
+"###,
+        site_url = &user_config.site_url
+    );
     writer.write_all(html.as_bytes())?;
 
     Ok(())
 }
 
 pub fn generate_meta_file(anime_meta: AnimeMeta) -> BoxResult<()> {
-
     // required fields
     println!("title = {}", anime_meta.title);
     println!("synopsis = {}", anime_meta.synopsis);

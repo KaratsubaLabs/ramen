@@ -1,22 +1,22 @@
-
 // api requests
 
-use crate::serde::{Deserialize};
-
-use super::common::{BoxResult};
-use super::error::{SimpleError};
-use super::parse::{AnimeMeta, AnimeMetaBuiilder};
+use super::{
+    common::BoxResult,
+    error::SimpleError,
+    parse::{AnimeMeta, AnimeMetaBuiilder},
+};
+use crate::serde::Deserialize;
 
 pub static API_URL: &str = "https://api.jikan.moe/v4";
 
 #[derive(Deserialize, Debug)]
 struct GetAnimeResponse {
-    pub data: APIAnimeData
+    pub data: APIAnimeData,
 }
 
 #[derive(Deserialize, Debug)]
 struct SearchAnimeResponse {
-    pub data: Vec<APIAnimeData>
+    pub data: Vec<APIAnimeData>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -30,7 +30,6 @@ struct APIAnimeData {
 }
 
 pub fn get_anime_by_id(anime_id: &str) -> BoxResult<AnimeMeta> {
-
     let resp = reqwest::blocking::get(format!("{}/anime/{}", API_URL, anime_id))?
         .json::<GetAnimeResponse>()
         .or(Err(SimpleError::new("failed making api call")))?;
@@ -54,7 +53,6 @@ pub fn search_anime(anime_name: &str) -> Result<(), reqwest::Error> {
 */
 
 fn to_anime_meta(anime_data: APIAnimeData) -> BoxResult<AnimeMeta> {
-    
     let builder = AnimeMetaBuiilder::new();
 
     let anime_meta = builder
@@ -67,4 +65,3 @@ fn to_anime_meta(anime_data: APIAnimeData) -> BoxResult<AnimeMeta> {
 
     Ok(anime_meta)
 }
-

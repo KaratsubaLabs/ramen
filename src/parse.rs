@@ -1,22 +1,15 @@
-
 // parses file system
 
-use std::fs;
-use std::fs::File;
-use std::path::Path;
-use std::io;
-use std::io::prelude::*;
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, fs, fs::File, io, io::prelude::*, path::Path};
 
-use super::common::{BoxResult};
-use super::error::{SimpleError};
+use super::{common::BoxResult, error::SimpleError};
 
 #[derive(Debug)]
 pub enum AnimeType {
     TV,
     OVA,
     Movie,
-    Special
+    Special,
 }
 
 #[derive(Debug)]
@@ -65,10 +58,10 @@ pub struct AnimeMetaBuiilder {
 
 impl EpisodeData {
     pub fn new(filename: &str) -> Self {
-        EpisodeData{
+        EpisodeData {
             name: None,
             subtitles: Vec::new(),
-            filename: filename.to_string()
+            filename: filename.to_string(),
         }
     }
 }
@@ -105,7 +98,7 @@ impl AnimeMetaBuiilder {
             "ova" => Some(AnimeType::OVA),
             "movie" => Some(AnimeType::Movie),
             "special" => Some(AnimeType::Special),
-            _ => None
+            _ => None,
         };
         self
     }
@@ -137,15 +130,18 @@ impl AnimeMetaBuiilder {
 }
 
 pub fn parse_all(path: &Path) -> BoxResult<Vec<AnimeData>> {
-    
     let mut anime_data_index = Vec::new();
     for f in fs::read_dir(path)? {
         let f = f?;
         println!("parsing {:?}", f.file_name());
-        if !f.path().is_dir() { continue; }
+        if !f.path().is_dir() {
+            continue;
+        }
 
         let anime_data = parse_anime(&f.path());
-        if anime_data.is_err() { continue; }
+        if anime_data.is_err() {
+            continue;
+        }
 
         anime_data_index.push(anime_data.unwrap());
     }
@@ -153,7 +149,6 @@ pub fn parse_all(path: &Path) -> BoxResult<Vec<AnimeData>> {
 }
 
 fn parse_anime(anime_dir: &Path) -> BoxResult<AnimeData> {
-
     // grab metadata
     let path = anime_dir.join("data");
     let meta = parse_meta(&path.join("metadata"))?;
@@ -162,11 +157,15 @@ fn parse_anime(anime_dir: &Path) -> BoxResult<AnimeData> {
     let path = anime_dir.join("files");
     let mut episodes: BTreeMap<u8, EpisodeData> = BTreeMap::new();
     for f in fs::read_dir(path)? {
-        if f.is_err() { continue; }
+        if f.is_err() {
+            continue;
+        }
         let f = f?;
 
         let episode = parse_episode_file(&f.path());
-        if episode.is_none() { continue; }
+        if episode.is_none() {
+            continue;
+        }
 
         let episode = episode.unwrap();
         episodes.insert(episode.0, episode.1);
@@ -178,23 +177,31 @@ fn parse_anime(anime_dir: &Path) -> BoxResult<AnimeData> {
         let f = f?;
 
         let subtitle = parse_subtitle_file(&f.path());
-        if subtitle.is_none() { continue; }
+        if subtitle.is_none() {
+            continue;
+        }
         let subtitle = subtitle.unwrap();
 
         // check if subtitle file has a corresponding episode
-        if !episodes.contains_key(&subtitle.0) { continue; }
+        if !episodes.contains_key(&subtitle.0) {
+            continue;
+        }
 
         let ep_data = episodes.get_mut(&subtitle.0).unwrap();
         ep_data.subtitles.push(subtitle.1);
     }
 
-    let dir_name = anime_dir.file_name().ok_or(SimpleError::new("failed to parse dir_name to os string"))?;
-    let dir_name = dir_name.to_str().ok_or(SimpleError::new("failed to parse dir_name to string"))?;
+    let dir_name = anime_dir
+        .file_name()
+        .ok_or(SimpleError::new("failed to parse dir_name to os string"))?;
+    let dir_name = dir_name
+        .to_str()
+        .ok_or(SimpleError::new("failed to parse dir_name to string"))?;
 
     let anime_data = AnimeData {
-        meta: meta,
-        episodes: episodes,
-        dir_name: dir_name.to_string()
+        meta,
+        episodes,
+        dir_name: dir_name.to_string(),
     };
 
     println!("{:?}", anime_data);
@@ -203,7 +210,6 @@ fn parse_anime(anime_dir: &Path) -> BoxResult<AnimeData> {
 }
 
 fn parse_meta(meta_path: &Path) -> BoxResult<AnimeMeta> {
-
     let file = File::open(meta_path)?;
     let reader = io::BufReader::new(file);
 
@@ -213,7 +219,9 @@ fn parse_meta(meta_path: &Path) -> BoxResult<AnimeMeta> {
     for line in reader.lines() {
         let line = line?;
         let split = line.split_once("=");
-        if split.is_none() { continue; }
+        if split.is_none() {
+            continue;
+        }
 
         let mut split = split.unwrap();
         split = (split.0.trim(), split.1.trim());
@@ -226,19 +234,22 @@ fn parse_meta(meta_path: &Path) -> BoxResult<AnimeMeta> {
             "img_url" => builder.img_url(split.1.to_string()),
             "release_year" => builder.release_year(split.1.to_string()),
             "tags" => builder.tags(split.1.to_string()),
-            _ => builder
+            _ => builder,
         }
     }
 
-    let anime_data = builder.build().ok_or(SimpleError::new("failed to build anime data"))?;
+    let anime_data = builder
+        .build()
+        .ok_or(SimpleError::new("failed to build anime data"))?;
     println!("{:?}", anime_data);
 
     Ok(anime_data)
 }
 
-fn parse_episode_file(ep_file: &Path) -> Option<(u8,EpisodeData)> {
-
-    if !ep_file.is_file() { return None; }
+fn parse_episode_file(ep_file: &Path) -> Option<(u8, EpisodeData)> {
+    if !ep_file.is_file() {
+        return None;
+    }
 
     // grab file name and extension
     let episode_number = ep_file.file_stem()?.to_str()?.parse::<u8>().ok()?;
@@ -254,9 +265,10 @@ fn parse_episode_file(ep_file: &Path) -> Option<(u8,EpisodeData)> {
 }
 
 // subtitle file name in form [episode_number]_[language].[extension]
-fn parse_subtitle_file(sub_file: &Path) -> Option<(u8,SubtitleData)> {
-
-    if !sub_file.is_file() { return None; }
+fn parse_subtitle_file(sub_file: &Path) -> Option<(u8, SubtitleData)> {
+    if !sub_file.is_file() {
+        return None;
+    }
 
     // grab file name and extension
     let filename = sub_file.file_name()?.to_str()?;
@@ -266,10 +278,9 @@ fn parse_subtitle_file(sub_file: &Path) -> Option<(u8,SubtitleData)> {
     let episode_number = split.0.parse::<u8>().ok()?;
     let language = split.1;
 
-    let subtitle_data = SubtitleData{
+    let subtitle_data = SubtitleData {
         filename: filename.to_string(),
-        language: language.to_string()
+        language: language.to_string(),
     };
-    Some((episode_number,subtitle_data))
+    Some((episode_number, subtitle_data))
 }
-

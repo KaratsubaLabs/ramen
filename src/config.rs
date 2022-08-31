@@ -1,14 +1,13 @@
-
 // manage user config file
 
-use std::fs::File;
-use std::io;
-use std::io::prelude::*;
-use std::path::{PathBuf, Path};
+use std::{
+    fs::File,
+    io,
+    io::prelude::*,
+    path::{Path, PathBuf},
+};
 
-use super::common;
-use super::common::{BoxResult};
-use super::error::{SimpleError};
+use super::{common, common::BoxResult, error::SimpleError};
 
 #[derive(Debug)]
 pub struct UserConfig {
@@ -16,7 +15,7 @@ pub struct UserConfig {
     pub files_url: String,
     pub config_dir: PathBuf,
     pub content_path: PathBuf, // location of raw anime files
-    pub static_path: PathBuf, // location of outputted static generated files
+    pub static_path: PathBuf,  // location of outputted static generated files
 }
 
 #[derive(Debug)]
@@ -30,7 +29,7 @@ pub struct UserConfigBuilder {
 
 impl UserConfigBuilder {
     pub fn new(config_dir: &Path) -> UserConfigBuilder {
-        UserConfigBuilder{
+        UserConfigBuilder {
             site_url: None,
             files_url: None,
             config_dir: config_dir.to_path_buf(),
@@ -69,7 +68,6 @@ impl UserConfigBuilder {
 }
 
 pub fn load_config(path: &Path) -> BoxResult<UserConfig> {
-
     let file = File::open(&path.join(common::CONFIG_FILE_NAME))?;
     let reader = io::BufReader::new(file);
 
@@ -79,7 +77,9 @@ pub fn load_config(path: &Path) -> BoxResult<UserConfig> {
     for line in reader.lines() {
         let line = line?;
         let split = line.split_once("=");
-        if split.is_none() { continue; }
+        if split.is_none() {
+            continue;
+        }
         let mut split = split.unwrap();
         split = (split.0.trim(), split.1.trim());
 
@@ -88,14 +88,15 @@ pub fn load_config(path: &Path) -> BoxResult<UserConfig> {
             "files_url" => builder.files_url(split.1.to_string()),
             "content_path" => builder.content_path(split.1),
             "static_path" => builder.static_path(split.1),
-            _ => builder
+            _ => builder,
         }
     }
 
-    let user_config = builder.build().ok_or(SimpleError::new("failed to build user config"))?;
+    let user_config = builder
+        .build()
+        .ok_or(SimpleError::new("failed to build user config"))?;
 
     println!("{:?}", user_config);
-    
+
     Ok(user_config)
 }
-

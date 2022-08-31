@@ -1,18 +1,16 @@
-
-use std::fmt;
-use std::error::Error;
+use std::{error::Error, fmt};
 
 // simple error, holds a text string with the error message
 
 #[derive(Debug)]
 pub struct SimpleError {
-    pub msg: String
+    pub msg: String,
 }
 
 impl SimpleError {
     pub fn new(msg: &str) -> SimpleError {
         SimpleError {
-            msg: msg.to_string()
+            msg: msg.to_string(),
         }
     }
 }
@@ -34,9 +32,9 @@ pub struct CommandError {
 
 impl CommandError {
     pub fn new(msg: Option<&str>, display_help: bool) -> CommandError {
-        CommandError{
+        CommandError {
             msg: msg.map(str::to_string),
-            display_help: display_help
+            display_help,
         }
     }
     pub fn with_help() -> CommandError {
@@ -58,4 +56,3 @@ impl fmt::Display for CommandError {
         }
     }
 }
-
