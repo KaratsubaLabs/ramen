@@ -7,7 +7,10 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use super::{api, config, config::UserConfig, error::CommandError, gen, parse};
+#[cfg(feature = "api")]
+use super::api;
+
+use super::{config, config::UserConfig, error::CommandError, gen, parse};
 
 static HELP_MSG: &str = "\
 USAGE:
@@ -149,6 +152,8 @@ anime_type = tv
 }
 
 fn meta(args: &mut Vec<String>, flags: &Flags) -> CommandResult<()> {
+    #[cfg(feature = "api")]
+    {
     let anime_name: &str = &args.get(0).ok_or(CommandError::with_help())?.clone();
     args.remove(0);
 
@@ -158,6 +163,11 @@ fn meta(args: &mut Vec<String>, flags: &Flags) -> CommandResult<()> {
     // println!("{:?}", anime_meta);
 
     gen::generate_meta_file(anime_meta);
+    }
+    #[cfg(not(feature = "api"))]
+    {
+        return Err(CommandError::with_error("api feature not enabled"))
+    }
 
     Ok(())
 }

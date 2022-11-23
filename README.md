@@ -70,4 +70,4 @@ follows:
 - [ ] support decimal episode numbers (rust doesn't have Ord on f32?)
 - [ ] error output on invalid configs
 - [ ] better error handling in commands.rs
-- [ ] add conditional compilation to enable api metadata scrape features
+- [x] add conditional compilation to enable api metadata scrape features
