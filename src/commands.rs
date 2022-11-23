@@ -7,10 +7,14 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use crate::common::BoxResult;
+
 #[cfg(feature = "api")]
 use super::api;
 
 use super::{config, config::UserConfig, error::CommandError, gen, parse};
+
+use pino_argparse::{Cli, Command, Flag, FlagParse};
 
 static HELP_MSG: &str = "\
 USAGE:
@@ -44,6 +48,69 @@ impl Flags {
             verbose: false,
         })
     }
+}
+
+pub fn run_cli() {
+    
+    let cli = Cli {
+	program_name: "ramen",
+	synopsis: "static anime hosting site generator",
+	subcommands: vec![
+	    Command {
+		command_name: "init",
+		handler: handle_init,
+		..Default::default()
+	    },
+	    Command {
+		command_name: "add",
+		handler: handle_add,
+		..Default::default()
+	    },
+	    Command {
+		command_name: "meta",
+		handler: handle_meta,
+		..Default::default()
+	    },
+	    Command {
+		command_name: "build",
+		handler: handle_build,
+		..Default::default()
+	    },
+	    Command {
+		command_name: "clean",
+		handler: handle_clean,
+		..Default::default()
+	    },
+	],
+	global_flags: vec![
+	    Flag::new("help")
+		.short('h'),
+	    Flag::new("config")
+		.short('c')
+	],
+	..Default::default()
+    };
+
+}
+
+fn handle_init(flagparse: FlagParse) -> BoxResult<()> {
+    Ok(())
+}
+
+fn handle_add(flagparse: FlagParse) -> BoxResult<()> {
+    Ok(())
+}
+
+fn handle_meta(flagparse: FlagParse) -> BoxResult<()> {
+    Ok(())
+}
+
+fn handle_build(flagparse: FlagParse) -> BoxResult<()> {
+    Ok(())
+}
+
+fn handle_clean(flagparse: FlagParse) -> BoxResult<()> {
+    Ok(())
 }
 
 pub fn argparse(args: &[String]) {
